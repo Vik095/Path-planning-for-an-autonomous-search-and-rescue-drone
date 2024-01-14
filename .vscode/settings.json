@@ -1,0 +1,4 @@
+{
+    "python.analysis.autoImportCompletions": true,
+    "java.debug.settings.onBuildFailureProceed": true
+}
