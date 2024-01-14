@@ -583,7 +583,7 @@ while (abs(position[0] - target_position[0]) > 1 or abs(position[1] - target_pos
     print("cost" + str(estimatedcost))
     
 
-    print("opt index" + str(optimal_index))
+    # print("opt index" + str(optimal_index))
 
     # print(visits.count(round(estimatedcost[i], 1)))
     # print(round(estimatedcost[i], 1))
