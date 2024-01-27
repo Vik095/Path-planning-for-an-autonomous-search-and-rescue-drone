@@ -1,12 +1,13 @@
 # INIT----------------------------------------------
 import math
 import time
+from drppp import DARP
 import sim
 import numpy as np
 from PIL import Image
-
+from mstmodified import DARPVisualizer
 import matplotlib.pyplot as plt
-ip = '127.0.0.1'
+ip = '127.0.0.05'
 port = 19999
 client_id = sim.simxStart(ip, port, True, True, 5000, 5)
 if client_id != -1:
@@ -39,10 +40,13 @@ _, frontLeftSensor = sim.simxGetObjectHandle(
 _, backLeftSensor = sim.simxGetObjectHandle(
     client_id, './backLeftSensor', sim.simx_opmode_blocking)
 # --------------------------------------------------------------------------------------------------------
-_, bottomCamera= sim.simxGetObjectHandle(client_id, './Vision_sensor', sim.simx_opmode_blocking)
-_,_, image= sim.simxGetVisionSensorImage(client_id,bottomCamera,0,sim.simx_opmode_streaming)
+_, bottomCamera = sim.simxGetObjectHandle(
+    client_id, './Vision_sensor', sim.simx_opmode_blocking)
+_, _, image = sim.simxGetVisionSensorImage(
+    client_id, bottomCamera, 0, sim.simx_opmode_streaming)
 time.sleep(0.1)
-_,_, image= sim.simxGetVisionSensorImage(client_id,bottomCamera,0,sim.simx_opmode_buffer)
+_, _, image = sim.simxGetVisionSensorImage(
+    client_id, bottomCamera, 0, sim.simx_opmode_buffer)
 
 # # Streaming mode for proximity sensors
 # _, detectionState, detectedPoint, _, norm = sim.simxReadProximitySensor(client_id, backSensor, sim.simx_opmode_streaming)
@@ -86,7 +90,7 @@ _,_, image= sim.simxGetVisionSensorImage(client_id,bottomCamera,0,sim.simx_opmod
 # while position[2] < 7:
 #     _, position = sim.simxGetObjectPosition(client_id, ball_handle, -1, sim.simx_opmode_buffer)
 #     # position[2] += 0.01  # Increment the Z coordinate
-#     sim.simxSetObjectPosition(client_id, ball_handle, -1, [position[0],position[1],position[2]+0.1], sim.simx_opmode_blocking)
+#     sim.simxSetObjectPosition(client_id, ball_handle, -1, [position[0],position[1],position[2]+0.05], sim.simx_opmode_blocking)
 
 #     _, position = sim.simxGetObjectPosition(client_id, ball_handle, -1, sim.simx_opmode_buffer)
 
@@ -108,6 +112,7 @@ def collision(handle):
     _, detectionState, _, _, _ = sim.simxReadProximitySensor(
         client_id, handle, sim.simx_opmode_buffer)
     return detectionState
+
 
 sensor_handles = {
     0: frontSensor,
@@ -139,9 +144,10 @@ target_position = [20, +25, 5]
 
 #     while position[2]<init:
 #         _,position=sim.simxGetObjectPosition(client_id, ball_handle,-1, sim.simx_opmode_buffer)
-#         sim.simxSetObjectPosition(client_id,ball_handle,-1,[position[0],position[1],position[2]+0.1],sim.simx_opmode_oneshot)
+#         sim.simxSetObjectPosition(client_id,ball_handle,-1,[position[0],position[1],position[2]+0.05],sim.simx_opmode_oneshot)
 #         _,position=sim.simxGetObjectPosition(client_id, ball_handle,-1, sim.simx_opmode_buffer)
 #         time.sleep(0.1)
+
 
 def collision_distance(i):
     _, position = sim.simxGetObjectPosition(
@@ -150,12 +156,12 @@ def collision_distance(i):
     _, position = sim.simxGetObjectPosition(
         client_id, ball_handle, -1, sim.simx_opmode_buffer)
     time.sleep(0.1)
-    _,_,detectDist, _, _ = sim.simxReadProximitySensor(
+    _, _, detectDist, _, _ = sim.simxReadProximitySensor(
         client_id, sensor_handles[i], sim.simx_opmode_streaming)
     time.sleep(1)
-    _,_,detectDist, _, _ = sim.simxReadProximitySensor(
+    _, _, detectDist, _, _ = sim.simxReadProximitySensor(
         client_id, sensor_handles[i], sim.simx_opmode_buffer)
-    if(distance(detectDist,position)<0.1):
+    if (distance(detectDist, position) < 0.05):
         return False
     else:
         return True
@@ -171,11 +177,11 @@ def oneBack():
     time.sleep(0.1)
     init = position[1]-1
 
-    while (position[1] > init and not collision(sensor_handles[4])):
+    while (position[1] >= init and not collision(sensor_handles[4])):
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(
-            client_id, ball_handle, -1, [position[0], position[1]-0.1, position[2]], sim.simx_opmode_oneshot)
+            client_id, ball_handle, -1, [position[0], position[1]-0.05, position[2]], sim.simx_opmode_oneshot)
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         time.sleep(0.1)
@@ -190,11 +196,11 @@ def oneFront():
     time.sleep(0.1)
     init = position[1]+1
 
-    while (position[1] < init):
+    while (position[1] <= init):
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(
-            client_id, ball_handle, -1, [position[0], position[1]+0.1, position[2]], sim.simx_opmode_oneshot)
+            client_id, ball_handle, -1, [position[0], position[1]+0.05, position[2]], sim.simx_opmode_oneshot)
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         time.sleep(0.1)
@@ -214,7 +220,7 @@ def oneRight():
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(
-            client_id, ball_handle, -1, [position[0]+0.1, position[1], position[2]], sim.simx_opmode_oneshot)
+            client_id, ball_handle, -1, [position[0]+0.05, position[1], position[2]], sim.simx_opmode_oneshot)
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         time.sleep(0.1)
@@ -229,11 +235,11 @@ def oneLeft():
     time.sleep(0.1)
     init = position[0]-1
 
-    while position[0] > init:
+    while position[0] >= init:
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(
-            client_id, ball_handle, -1, [position[0]-0.1, position[1], position[2]], sim.simx_opmode_oneshot)
+            client_id, ball_handle, -1, [position[0]-0.05, position[1], position[2]], sim.simx_opmode_oneshot)
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         time.sleep(0.1)
@@ -272,16 +278,17 @@ def backRight():
         client_id, ball_handle, -1, sim.simx_opmode_buffer)
     time.sleep(0.1)
     init = position[0]+1
-    if(target_position[0]-position[0]==0):
-        theta=np.pi/2
+    if (target_position[0]-position[0] == 0):
+        theta = np.pi/2
     else:
         theta = np.arctan(
-        abs((target_position[1]-position[1])/(target_position[0]-position[0])))
+            abs((target_position[1]-position[1])/(target_position[0]-position[0])))
 
-    while position[0]<init:
+    while position[0] <= init:
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
-        sim.simxSetObjectPosition(client_id, ball_handle, -1, [position[0]+0.1, position[1]-0.1, position[2]], sim.simx_opmode_oneshot)
+        sim.simxSetObjectPosition(client_id, ball_handle, -1, [
+                                  position[0]+0.05, position[1]-0.05, position[2]], sim.simx_opmode_oneshot)
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         time.sleep(0.1)
@@ -320,16 +327,17 @@ def backLeft():
         client_id, ball_handle, -1, sim.simx_opmode_buffer)
     time.sleep(0.1)
     init = position[0]-1
-    if(target_position[0]-position[0]==0):
-        theta=np.pi/2
+    if (target_position[0]-position[0] == 0):
+        theta = np.pi/2
     else:
         theta = np.arctan(
-        abs((target_position[1]-position[1])/(target_position[0]-position[0])))
+            abs((target_position[1]-position[1])/(target_position[0]-position[0])))
 
-    while position[0]>init:
+    while position[0] >= init:
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
-        sim.simxSetObjectPosition(client_id, ball_handle, -1, [position[0]-0.1, position[1]-0.1, position[2]], sim.simx_opmode_oneshot)
+        sim.simxSetObjectPosition(client_id, ball_handle, -1, [
+                                  position[0]-0.05, position[1]-0.05, position[2]], sim.simx_opmode_oneshot)
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         time.sleep(0.1)
@@ -367,18 +375,20 @@ def frontRight():
         client_id, ball_handle, -1, sim.simx_opmode_buffer)
     time.sleep(0.1)
     init = position[0]+1
-    if(target_position[0]-position[0]==0):
-        theta=np.pi/2
+    if (target_position[0]-position[0] == 0):
+        theta = np.pi/2
     else:
         theta = np.arctan(
-        abs((target_position[1]-position[1])/(target_position[0]-position[0])))
-    while position[0]<init:
+            abs((target_position[1]-position[1])/(target_position[0]-position[0])))
+    while position[0] <= init:
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
-        sim.simxSetObjectPosition(client_id, ball_handle, -1, [position[0]+0.1, position[1]+0.1, position[2]], sim.simx_opmode_oneshot)
+        sim.simxSetObjectPosition(client_id, ball_handle, -1, [
+                                  position[0]+0.05, position[1]+0.05, position[2]], sim.simx_opmode_oneshot)
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         time.sleep(0.1)
+
 
 def frontLeft():
 
@@ -389,37 +399,27 @@ def frontLeft():
         client_id, ball_handle, -1, sim.simx_opmode_buffer)
     time.sleep(0.1)
     init = position[0]-1
-    if(target_position[0]-position[0]==0):
-        theta=np.pi/2
+    if (target_position[0]-position[0] == 0):
+        theta = np.pi/2
     else:
         theta = np.arctan(
-        abs((target_position[1]-position[1])/(target_position[0]-position[0])))
-    while position[0] > init:
+            abs((target_position[1]-position[1])/(target_position[0]-position[0])))
+    while position[0] >= init:
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
-        sim.simxSetObjectPosition(client_id, ball_handle, -1, [position[0]-0.1, position[1]+0.1, position[2]], sim.simx_opmode_oneshot)
+        sim.simxSetObjectPosition(client_id, ball_handle, -1, [
+                                  position[0]-0.05, position[1]+0.05, position[2]], sim.simx_opmode_oneshot)
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         time.sleep(0.1)
-
-
-# def velocity():
-#     _, linearVelocity,_=sim.simxGetObjectVelocity(client_id,drone,sim.simx_opmode_streaming)
-#     time.sleep(0.1)
-#     _, linearVelocity,_=sim.simxGetObjectVelocity(client_id,drone,sim.simx_opmode_buffer)
-#     print(linearVelocity)
-#     return linearVelocity
-
-
 def cost(index, position):
-    # Update the position based on the movement index
-    # Create a copy to avoid modifying the input directly
+
     new_position = position.copy()
-    if(target_position[0]-position[0]==0):
-        theta=np.pi/2
+    if (target_position[0]-position[0] == 0):
+        theta = np.pi/2
     else:
         theta = np.arctan(
-        abs((target_position[1]-position[1])/(target_position[0]-position[0])))
+            abs((target_position[1]-position[1])/(target_position[0]-position[0])))
     if index == 0:
         new_position[1] += 1
     elif index == 1:
@@ -446,33 +446,31 @@ def cost(index, position):
     return new_distance
 
 
-def trackerUpdate(index, position):
-    # Update the position based on the movement index
-    # Create a copy to avoid modifying the input directly
-    new_position = position.copy()
+def trackerUpdate(index, new_position):
+    x, y = np.copy(new_position)  
 
     if index == 0:
-        new_position[1] += 1
+        y += 1
     elif index == 1:
-        new_position[0] += 1
-        new_position[1] += 1
+        x += 1
+        y += 1
     elif index == 2:
-        new_position[0] += 1
+        x += 1
     elif index == 3:
-        new_position[0] += 1
-        new_position[1] -= 1
+        x += 1
+        y -= 1
     elif index == 4:
-        new_position[1] -= 1
+        y -= 1
     elif index == 5:
-        new_position[0] -= 1
-        new_position[1] -= 1
+        x -= 1
+        y -= 1
     elif index == 6:
-        new_position[0] -= 1
+        x -= 1
     elif index == 7:
-        new_position[0] -= 1
-        new_position[1] += 1
+        x -= 1
+        y += 1
 
-    return new_position
+    return x, y  # Return the updated position
 
 
 # DICTIONARIES----------------------
@@ -489,7 +487,7 @@ movement_functions = {
 
 
 # --------------------------------------
-grid_size = 0.5  # Set the size of each grid cell
+grid_size = 25  # Set the size of each grid cell
 map_size = 50  # Set the size of the map
 occupancy_map = np.zeros((map_size, map_size), dtype=int)
 
@@ -534,18 +532,31 @@ visits = []
 tracker = [0, 0]
 tempTracker = []
 estimatedcost = [0, 0, 0, 0, 0, 0, 0, 0]
-plt.ion()
-target_position=[4,4,0]
+sofarvisits=[]
+sofarintegervisits=[]
+o=0
+target_position = [1, 0, 0]
+grid = np.zeros([25, 25], dtype=int)
 
 _, position = sim.simxGetObjectPosition(
     client_id, ball_handle, -1, sim.simx_opmode_streaming)
 time.sleep(0.1)
 _, position = sim.simxGetObjectPosition(
     client_id, ball_handle, -1, sim.simx_opmode_buffer)
-while (abs(position[0] - target_position[0]) > 1 or abs(position[1] - target_position[1]) > 1):
+rows = 10
+cols = 10
+start=()
+start=(10,0)
+robots = [start, (0, 10)]
+valid_points=[]
+trackerVal=(0,1)
+o=0
+# while (abs(position[0] - target_position[0]) > 0.4 or abs(position[1] - target_position[1]) > 0.4):
+while True:
     # print("visits: " + str(visits))
     # print("tracker" + str(tracker))
-
+    sofarvisits.append((round(position[1]), round(position[0])))
+    sofarintegervisits.append((int(position[1]), int(position[0])))
     estimatedcost = [0, 0, 0, 0, 0, 0, 0, 0]
     _, position = sim.simxGetObjectPosition(
         client_id, ball_handle, -1, sim.simx_opmode_streaming)
@@ -558,7 +569,6 @@ while (abs(position[0] - target_position[0]) > 1 or abs(position[1] - target_pos
         estimatedcost[i] += cost(i, position)
         sensorState.append(collision(sensor_handles.get(i)))
 
-    
     print("sensors" + str(sensorState))
 
     min_cost = float('inf')
@@ -566,11 +576,10 @@ while (abs(position[0] - target_position[0]) > 1 or abs(position[1] - target_pos
 
     for i in range(len(sensorState)):
         if (sensorState[i]):
-            estimatedcost[i]+=1000
-        
-            
+            estimatedcost[i] += 1000
+
     n = 1
-    min_cost=0
+    min_cost = 0
     min_cost = float('inf')
     optimal_index = -1
 
@@ -581,15 +590,6 @@ while (abs(position[0] - target_position[0]) > 1 or abs(position[1] - target_pos
             optimal_index = i
         # Update visits_count based on the selected optimal_index
     print("cost" + str(estimatedcost))
-    
-
-    print("opt index" + str(optimal_index))
-
-    # print(visits.count(round(estimatedcost[i], 1)))
-    # print(round(estimatedcost[i], 1))
-
-    # if abs(position[0] - target_position[0]) < 1 and abs(position[1] - target_position[1]) < 1:
-    #     break
 
     movement_functions[optimal_index]()
     tracker = trackerUpdate(optimal_index, tracker)
@@ -599,41 +599,159 @@ while (abs(position[0] - target_position[0]) > 1 or abs(position[1] - target_pos
     time.sleep(0.1)
     _, position = sim.simxGetObjectPosition(
         client_id, ball_handle, -1, sim.simx_opmode_buffer)
-    
+
     time.sleep(0.1)
+
+    
+    # Start streaming the signal
+    result, data = sim.simxGetStringSignal(
+        client_id, 'points', sim.simx_opmode_streaming)
+    time.sleep(3)
+    # Receive the streamed signal
+    result, data = sim.simxGetStringSignal(
+        client_id, 'points', sim.simx_opmode_buffer)
+    import cbor2
+    unpacked_data = cbor2.loads(data)
+
+    # Print the unpacked data (assuming it's a dictionary)
+    print(unpacked_data)
+    x_values = [coord[0] for coord in unpacked_data]
+    y_values = [coord[1] for coord in unpacked_data]
     
 
-    time.sleep(1)
+    def round_to_nearest_half(number):
+        return round(number * 2) / 2
+    x_values = [round_to_nearest_half(xvals) for xvals in x_values]
+    y_values = [round_to_nearest_half(yvals) for yvals in y_values]
+    print("xvalues:")
+    print(x_values)
+    print("yvalues")
+    print(y_values)
+
+    points = [[x_values[i], y_values[i]]for i in range(len(x_values))]
+
+    # Remove duplicates
+    unique_points = list(set(map(tuple, points)))
+
+    # Convert back to list of lists
+    unique_points = [list(point) for point in unique_points]
+
+    print("Original points:", points)
+    print("Points without duplicates:", unique_points)
+
+    print(unique_points)
+    filtered_points = [[point[0], point[1]] for point in unique_points if (
+        (point[0] != point[0]//1) or (point[1] != point[1]//1))]
+
     
-    # grid_size_x = 100
-    # grid_size_y = 100
-    # cell_size = 0.1  # Adjust based on your requirements
-    # occupancy_grid = [[0 for _ in range(grid_size_y)] for _ in range(grid_size_x)]
+    
+    print("Position:", position)
+    for i in range(len(filtered_points)):
+        subject = filtered_points[i]
+        if (subject[0] % 1 == 0):
+            if (position[0] < subject[0]):
+                filtered_points[i][0] += 0.5
+            else:
+                filtered_points[i][0] -= 0.5
+        if (subject[1] % 1 == 0):
+            if (position[1] < subject[1]):
+                filtered_points[i][1] += 0.5
+            else:
+                filtered_points[i][1] -= 0.5
 
+    # Remove duplicates
+    unique_points = list(set(map(tuple, filtered_points)))
 
+    # Convert back to list of lists
+    filtered_points = [list(point) for point in unique_points]
 
-    # Read sensor data and update occupancy grid
-    # for sensor_handle in sensor_handles:
-    #     _, detection_state, _, _, detected_point = sim.simxReadProximitySensor(client_id, sensor_handle, sim.simx_opmode_blocking)
+    print("Filtered points:", filtered_points)
+    print(position)
 
-    #     if detection_state and detected_point[2] < 0.5:  # Adjust threshold based on your sensor's specifications
-    #         # Detected an obstacle, update the occupancy grid
-    #         grid_x = math.floor(detected_point[0] / cell_size) + grid_size_x // 2
-    #         grid_y = math.floor(detected_point[1] / cell_size) + grid_size_y // 2
+    grid_resolution = 1.0  # Assuming obstacles are 1x1
+    valid_points.extend([(int(point[1]), int(point[0])) for point in filtered_points])
+    valid_points.extend([(round(position[1]),round(position[0]))])
+    valid_points.extend([(0,0)])
+    m = 0.1
 
-    #         # Check if the calculated indices are within the grid bounds
-    #         if 0 <= grid_x < grid_size_x and 0 <= grid_y < grid_size_y:
-    #             occupancy_grid[grid_x][grid_y] = 1
+    darp_visualizer = DARPVisualizer(rows, cols, robots, valid_points, m)
+    robot_index = 1  # Replace with the desired robot index
+    robot_points = darp_visualizer.get_points_for_robot(robot_index)
+    darp_visualizer.visualize_darp()
+
+    # Choose target position such that the distance between robots and target is minimized
+    min_distance = float('inf')
+    for i in range(len(robot_points)):
+        distance_to_robot = ((robot_points[i][0] - int(position[0]))**2 + (robot_points[i][1] - int(position[1]))**2)**0.5
+        print("min distances:", min_distance)
+        print("distanceto:", distance_to_robot)
+        print("robots",robots)
+        print("tobe bisited:", robot_points)
+        if distance_to_robot < min_distance:
+            min_distance = distance_to_robot
+            
+            target_position = robot_points[i]
+
+    print("tovisit", robot_points)
+    print("taget",target_position)
+    sofarvisits.append((round(position[1]), round(position[0])))
+    sofarintegervisits.append((int(position[1]), int(position[0])))
+    robots=[(int(position[1]),int(position[0])),(9,0)]
+    o+=1
+    if o>3:
+        break
+    
+
+# import matplotlib.pyplot as plt
+# import numpy as np
+
+# Assuming 'grid' and 'grid_size' are defined earlier in your code
+# for point in valid_points:
+#         x, y = point
+#         grid[x][y] = 1
+# plt.imshow(1 - grid, cmap='gray', origin='lower', extent=[0, grid_size, 0, grid_size], vmin=0, vmax=1)
+
+# Add grid lines
+# plt.grid(color='black', linestyle='-', linewidth=1)
+
+# Set axis ticks to go up by 1s
+# plt.xticks(np.arange(0, grid_size + 1, step=1))
+# plt.yticks(np.arange(0, grid_size + 1, step=1))
+
+# plt.title('Occupancy Grid Map')
+# plt.xlabel('Grid X')
+# plt.ylabel('Grid Y')
+
+# Save the image
+# plt.savefig('occupancy_grid_map.png')
+
+# Show the plot
+# plt.show()
 
 # frontRight()
 # _,position=sim.simxGetObjectPosition(client_id, ball_handle,-1, sim.simx_opmode_streaming)
 # time.sleep(0.1)
 # _,position=sim.simxGetObjectPosition(client_id, ball_handle,-1, sim.simx_opmode_buffer)
 # print(np.sqrt(position[0]**2+position[1]**2))
+plt.close()
+x_sofarvisits = [point[0] for point in sofarvisits]
+y_sofarvisits = [point[1] for point in sofarvisits]
 
+x_sofarintegervisits = [point[0] for point in sofarintegervisits]
+y_sofarintegervisits = [point[1] for point in sofarintegervisits]
+# Create a scatter plot
+plt.scatter(x_sofarvisits, y_sofarvisits, color='blue', label='sofarvisits')
+plt.scatter(x_sofarintegervisits, y_sofarintegervisits, color='red', label='sofarintegervisits')
 
+# Connect the points with lines
+plt.plot(x_sofarvisits, y_sofarvisits, linestyle='-', color='blue')
+plt.plot(x_sofarintegervisits, y_sofarintegervisits, linestyle='-', color='red')
+
+# Add labels and legend
+plt.xlabel('X-axis')
+plt.ylabel('Y-axis')
+plt.legend()
+
+# Show the plot
+plt.show()
 # END-----------------------------------
-sim.simxFinish(client_id)
-print("Connection Closed")
-
-
