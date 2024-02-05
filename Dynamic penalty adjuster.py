@@ -1,4 +1,4 @@
-from drppp import DARP
+from AreaDivision import DARP
 
 def Jcost(arr):
     total_sum = sum(arr)

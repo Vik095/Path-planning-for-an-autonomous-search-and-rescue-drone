@@ -2,7 +2,7 @@
 import math
 import time
 from turtle import pos
-from drppp import DARP
+from AreaDivision import DARP
 import sim
 import numpy as np
 from PIL import Image
@@ -547,7 +547,7 @@ rows = 10
 cols = 10
 start=()
 start=(10,0)
-robotse = [start, (0, 10)]
+robotse = [start, (9, 9)]
 valid_pointse=[]
 trackereVal=(0,1)
 oe=0

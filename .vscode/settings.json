@@ -1,4 +1,7 @@
 {
     "python.analysis.autoImportCompletions": true,
-    "java.debug.settings.onBuildFailureProceed": true
+    "java.debug.settings.onBuildFailureProceed": true,
+    "python.analysis.extraPaths": [
+        "./Vrep connection files"
+    ]
 }

@@ -1,9 +1,8 @@
 from cv2 import sort, sqrt
 import matplotlib.pyplot as plt
 import numpy as np
-from drppp import DARP
-from extre import nearest_neighbor
-from padding import PointMinimizer
+from AreaDivision import DARP
+
 import optuna
 from sympy import true
 import random
@@ -21,26 +20,42 @@ class DARPVisualizer:
 
     def visualize_assignment(self):
         self.darp_solver.assign_cells()
-        return self.darp_solver.visualize_assignment()
+        graphi=self.darp_solver.visualize_assignment()
+        plt.imshow(graphi, cmap='viridis', interpolation='nearest', origin='lower')  # Convert to float
+        plt.title('Assignment Matrix')
+        plt.colorbar()
+        
+
+        for i in range(self.rows):
+            for j in range(self.cols):
+                plt.text(j, i, str(graphi[i, j]), color='white', ha='center', va='center')
+
+        plt.show()
+        return graphi
 
     def create_indices_dict(self, assignment_matrix):
         indices_dict = {}
-        for i in range(assignment_matrix.shape[0]):
-            for j in range(assignment_matrix.shape[1]):
-                element = assignment_matrix[i, j]
-                if element in indices_dict:
-                    indices_dict[element].append((i, j))
-                else:
-                    indices_dict[element] = [(i, j)]
+        num_rows = len(assignment_matrix)
+        num_columns = len(assignment_matrix[0])
+
+        for i in range(num_rows):
+            for j in range(num_columns):
+                element = assignment_matrix[j][i]  # Corrected the index order
+                if element != 0:
+                    if element in indices_dict:
+                        indices_dict[element].append((i, j))
+                    else:
+                        indices_dict[element] = [(i, j)]
+
         return indices_dict
 
-    def euclidean_distance(self, point1, point2):
-        x1, y1 = point1
-        x2, y2 = point2
-        if math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2) == 1:
-            return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-        else:
-            return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2) - sqrt(2) + 1
+    # def euclidean_distance(self, point1, point2):
+    #     x1, y1 = point1
+    #     x2, y2 = point2
+    #     if math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2) == 1:
+    #         return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    #     else:
+    #         return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
     def count_turns(self, spanning_tree):
         num_turns = sum(
@@ -48,21 +63,28 @@ class DARPVisualizer:
         return num_turns
 
     def generate_spanning_tree(self, points):
+        
+        # Filter out obstacle points
+        points = [point for point in points if point not in self.obstacles]
+
         shuffled_points = sorted(points, key=lambda point: point[0])
         edges = []
 
         for i in range(len(shuffled_points)):
             for j in range(i + 1, len(shuffled_points)):
+                
                 x1, y1 = shuffled_points[i]
                 x2, y2 = shuffled_points[j]
-                if (((abs(x2 - x1) == 1 and abs(y2 - y1) == 0)) or ((abs(x2 - x1) == 0 and abs(y2 - y1) == 1))):
-                    edges.append((shuffled_points[i], shuffled_points[j],1))
+                if (((abs(x2 - x1) == 1 and abs(y2 - y1) == 0)) ^ ((abs(x2 - x1) == 0 and abs(y2 - y1) == 1))):
+                    print(shuffled_points[i-1] if i>0 else print("ok"))
+                    edges.append((shuffled_points[i], shuffled_points[j], 0.61))
+                    edges.sort(key=lambda edge: edge[2], reverse=False)
 
                 # Check if the points are diagonally adjacent
                 if abs(x2 - x1) == 1 and abs(y2 - y1) == 1:
-                    edges.append((shuffled_points[i], shuffled_points[j], 2))
+                    edges.append((shuffled_points[i], shuffled_points[j], 0.61))
 
-        edges.sort(key=lambda edge: edge[2],reverse=False)
+        edges.sort(key=lambda edge: edge[2], reverse=False)
         parent = {tuple(point): tuple(point) for point in shuffled_points}
 
         def find_set(point):
@@ -86,52 +108,34 @@ class DARPVisualizer:
         return spanning_tree
 
 
-    def calculate_distance(self, point1, point2):
-        return math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
-
-    def remove_points_within_radius(self, points, radius=1):
-        result = []
-        remaining_points = set(range(len(points)))
-
-        for i in range(len(points)):
-            if i not in remaining_points:
-                continue
-
-            current_point = points[i]
-            result.append(current_point)
-            remaining_points.remove(i)
-
-            for j in remaining_points.copy():
-                other_point = points[j]
-                distance = self.calculate_distance(current_point, other_point)
-
-                if distance <= radius:
-                    remaining_points.remove(j)
-
-        return result
-
     def plot_configuration(self, points, spanning_tree):
         
         x_values, y_values = zip(*points)
-        plt.scatter(x_values, y_values, color='blue', label='Points')
-
+        plt.scatter(x_values, y_values, color='blue')
+        print(spanning_tree)
+        color = np.random.rand(3,)
         for edge in spanning_tree:
+            
             (x1, y1), (x2, y2), weight = edge
-            plt.plot([y1, y2], [x1, x2], color='red', linewidth=2)
+
+
+            # plt.plot([x1, x2], [y1, y2], color='red', linewidth=2)
+       
 
         plt.xlabel('X-axis')
         plt.ylabel('Y-axis')
-        plt.title('Spanning Tree with Adjusted Diagonal Cost')
+        plt.title('Generated Energy Aware MST')
         plt.legend()
 
     def get_points_for_robot(self, i):
         assignment_matrix = self.visualize_assignment()
         indices_dict = self.create_indices_dict(assignment_matrix)
+        rarr=[]
 
         if i in indices_dict:
             points = indices_dict[i]
 
-            formatted_points = [[y, x, 5.5] for x, y in points]
+            formatted_points = [[x, y, 5.5] for x, y in points]
 
             # Convert the formatted points to a numpy array for easy manipulation
             np_points = np.array(formatted_points)
@@ -146,25 +150,76 @@ class DARPVisualizer:
         else:
             return []
 
+
     def visualize_darp(self):
         assignment_matrix = self.visualize_assignment()
         indices_dict = self.create_indices_dict(assignment_matrix)
 
         for i in range(1, 3):
-            points = indices_dict[i]
-            
-            spanning_tree = self.generate_spanning_tree(points)
+            if i in indices_dict:
+                points = indices_dict[i]
+                
+                spanning_tree = self.generate_spanning_tree(points)
 
-            self.plot_configuration(points, spanning_tree)
+                self.plot_configuration(points, spanning_tree)
+                for i in range(1, 3):
+                    if i in indices_dict:
+                        points = indices_dict[i]
+
+                        self.generate_and_visualize_dfs(points, spanning_tree)
+                        
+
 
         # plt.show()
+    def dfs_traversal(self, start_point, visited, dfs_points):
+        visited.add(start_point)
+        dfs_points.append(start_point)
 
-rows = 10
-cols = 10
-robots = [(0, 9), (9, 0)]
+        for neighbor in self.get_neighbors(start_point):
+            if neighbor not in visited:
+                self.dfs_traversal(neighbor, visited, dfs_points)
+
+    def get_neighbors(self, point):
+        x, y = point
+        neighbors = [
+            (x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1),
+            (x + 1, y + 1), (x - 1, y - 1), (x + 1, y - 1), (x - 1, y + 1)
+        ]
+        return [(neighbor_x, neighbor_y) for neighbor_x, neighbor_y in neighbors if 0 <= neighbor_x<self.rows  and 0 <= neighbor_y <self.cols]
+
+
+    def generate_and_visualize_dfs(self, points, spanning_tree):
+        
+        start_point = points[0]  # Assuming starting from the first point in the list
+        visited = set()
+        dfs_points = []
+
+        self.dfs_traversal(start_point, visited, dfs_points)
+
+        # self.plot_configuration(points, spanning_tree)  # Change this to plot MST or other elements
+        for i in range(len(dfs_points) - 1):
+            current_point = dfs_points[i]
+            next_point = self.get_neighbors(current_point)
+
+            # Check if the edge exists in the spanning tree before plotting
+            for point in next_point:
+                if any(((current_point, point) == (edge[0], edge[1]) or ((current_point, point) == (edge[1], edge[0])) for edge in spanning_tree)):
+                    plt.plot([current_point[0], point[0]], [current_point[1], point[1]], color='green', linewidth=2)
+                    print("curremt point", current_point, "point", point)
+    
+        
+
+
+
+rows = 9
+cols = 9
+robots = [(0, 0)]
 obstacles = [(2, 2), (1, 2), (3, 2), (0, 9)]
 obstacles = [(2, 4), (2, 2), (2, 1), (3, 0), (1, 1), (0, 0), (2, 4), (2, 2), (2, 1), (3, 0), (1, 1), (0, 0), (2, 4), (2, 2), (2, 1), (3, 0), (1, 1), (0, 0)]
 m = 0.1
+obstacles=[(2,2),(3,2)]
+
+
 
 darp_visualizer = DARPVisualizer(rows, cols, robots, obstacles, m)
 
@@ -172,8 +227,22 @@ robot_index = 1  # Replace with the desired robot index
 robot_points = darp_visualizer.get_points_for_robot(robot_index)
 darp_visualizer.visualize_darp()
 
-print(f"Points for Robot {robot_index}: {robot_points}")
-optimamth= nearest_neighbor(robot_points)
-print(robot_points)
-for val in optimamth:
-    print(robot_points[val])
+
+plt.show()
+grid=np.zeros((5,5), dtype=int)
+for point in obstacles:
+        y, x = point
+        grid[x][y] = 1
+plt.imshow(1 - grid, cmap='gray', origin='lower', extent=[0, 5, 0, 5], vmin=0, vmax=1)
+
+# Add grid lines
+plt.grid(color='black', linestyle='-', linewidth=1)
+
+# Set axis ticks to go up by 1s
+plt.xticks(np.arange(0, 5 + 1, step=1))
+plt.yticks(np.arange(0, 5 + 1, step=1))
+
+plt.title('Occupancy Grid Map')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.show()

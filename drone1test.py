@@ -1,4 +1,5 @@
 # INIT----------------------------------------------
+from decimal import ROUND_UP
 import math
 import time
 from AreaDivision import DARP
@@ -177,7 +178,7 @@ def oneBack():
     time.sleep(0.1)
     init = position[1]-1
 
-    while (position[1] > init):
+    while (position[1] >= init and not collision(sensor_handles[4])):
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(
@@ -196,7 +197,7 @@ def oneFront():
     time.sleep(0.1)
     init = position[1]+1
 
-    while (position[1] < init):
+    while (position[1] <= init):
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(
@@ -235,7 +236,7 @@ def oneLeft():
     time.sleep(0.1)
     init = position[0]-1
 
-    while position[0] > init:
+    while position[0] >= init:
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(
@@ -284,7 +285,7 @@ def backRight():
         theta = np.arctan(
             abs((target_position[1]-position[1])/(target_position[0]-position[0])))
 
-    while position[0] < init:
+    while position[0] <= init:
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(client_id, ball_handle, -1, [
@@ -333,7 +334,7 @@ def backLeft():
         theta = np.arctan(
             abs((target_position[1]-position[1])/(target_position[0]-position[0])))
 
-    while position[0] > init:
+    while position[0] >= init:
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(client_id, ball_handle, -1, [
@@ -380,7 +381,7 @@ def frontRight():
     else:
         theta = np.arctan(
             abs((target_position[1]-position[1])/(target_position[0]-position[0])))
-    while position[0] < init:
+    while position[0] <= init:
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(client_id, ball_handle, -1, [
@@ -404,7 +405,7 @@ def frontLeft():
     else:
         theta = np.arctan(
             abs((target_position[1]-position[1])/(target_position[0]-position[0])))
-    while position[0] > init:
+    while position[0] >= init:
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(client_id, ball_handle, -1, [
@@ -412,19 +413,8 @@ def frontLeft():
         _, position = sim.simxGetObjectPosition(
             client_id, ball_handle, -1, sim.simx_opmode_buffer)
         time.sleep(0.1)
-
-
-# def velocity():
-#     _, linearVelocity,_=sim.simxGetObjectVelocity(client_id,drone,sim.simx_opmode_streaming)
-#     time.sleep(0.1)
-#     _, linearVelocity,_=sim.simxGetObjectVelocity(client_id,drone,sim.simx_opmode_buffer)
-#     print(linearVelocity)
-#     return linearVelocity
-
-
 def cost(index, position):
-    # Update the position based on the movement index
-    # Create a copy to avoid modifying the input directly
+
     new_position = position.copy()
     if (target_position[0]-position[0] == 0):
         theta = np.pi/2
@@ -458,10 +448,7 @@ def cost(index, position):
 
 
 def trackerUpdate(index, new_position):
-    # Update the position based on the movement index
-    # Create a copy to avoid modifying the input directly
-
-    x, y = np.copy(new_position)  # Unpack the coordinates
+    x, y = np.copy(new_position)  
 
     if index == 0:
         y += 1
@@ -534,9 +521,38 @@ def nth_minimum_index(arr, n):
 
 
 # Example usage:
-# TARGET handlee
-_, ball_handleee = sim.simxGetObjectHandle(
-    client_id, './targete', sim.simx_opmode_blocking)
+
+
+_, position = sim.simxGetObjectPosition(
+    client_id, ball_handle, -1, sim.simx_opmode_streaming)
+time.sleep(0.1)
+_, position = sim.simxGetObjectPosition(
+    client_id, ball_handle, -1, sim.simx_opmode_buffer)
+print(position)
+visits = []
+tracker = [0, 0]
+tempTracker = []
+estimatedcost = [0, 0, 0, 0, 0, 0, 0, 0]
+sofarvisits=[]
+sofarintegervisits=[]
+o=0
+target_position = [1, 0, 0]
+grid = np.zeros([25, 25], dtype=int)
+
+_, position = sim.simxGetObjectPosition(
+    client_id, ball_handle, -1, sim.simx_opmode_streaming)
+time.sleep(0.1)
+_, position = sim.simxGetObjectPosition(
+    client_id, ball_handle, -1, sim.simx_opmode_buffer)
+rows = 10
+cols = 10
+start=()
+start=(10,0)
+robots = [start, (0, 10)]
+valid_points=[]
+trackerVal=(0,1)
+o=0
+_, ball_handleee = sim.simxGetObjectHandle(client_id, './targete', sim.simx_opmode_blocking)
 _, Floor = sim.simxGetObjectHandle(
     client_id, 'Floor', sim.simx_opmode_blocking)
 _, dronee = sim.simxGetObjectHandle(
@@ -697,7 +713,7 @@ def oneBacke():
     time.sleep(0.1)
     init = positione[1]-1
 
-    while (positione[1] >= init):
+    while (positione[1] >= init and not collisione(sensor_handlees[4])):
         _, positione = sim.simxGetObjectPosition(
             client_id, ball_handleee, -1, sim.simx_opmode_buffer)
         sim.simxSetObjectPosition(
@@ -932,11 +948,9 @@ def frontLefte():
         _, positione = sim.simxGetObjectPosition(
             client_id, ball_handleee, -1, sim.simx_opmode_buffer)
         time.sleep(0.1)
+def cost(index, position):
 
-
-def coste(index, position):
-
-    new_positione = positione.copy()
+    new_positione = position.copy()
     if (target_positione[0]-positione[0] == 0):
         theta = np.pi/2
     else:
@@ -969,7 +983,7 @@ def coste(index, position):
 
 
 def trackereUpdate(index, new_position):
-    x, y = np.copy(new_position)
+    x, y = np.copy(new_position)  
 
     if index == 0:
         y += 1
@@ -1038,50 +1052,26 @@ def nth_minimum_index(arr, n):
 
     return nth_min_index
 
+# Example usage:
 
-_, position = sim.simxGetObjectPosition(
-    client_id, ball_handle, -1, sim.simx_opmode_streaming)
-time.sleep(0.1)
-_, position = sim.simxGetObjectPosition(
-    client_id, ball_handle, -1, sim.simx_opmode_buffer)
-print("Position of drone 1: ",position)
-visits = []
-tracker = [0, 0]
-tempTracker = []
-estimatedcost = [0, 0, 0, 0, 0, 0, 0, 0]
 
-target_position = [1, 0, 0]
-grid = np.zeros([25, 25], dtype=int)
+# Example usage:
 
-_, position = sim.simxGetObjectPosition(
-    client_id, ball_handle, -1, sim.simx_opmode_streaming)
-time.sleep(0.1)
-_, position = sim.simxGetObjectPosition(
-    client_id, ball_handle, -1, sim.simx_opmode_buffer)
-rows = 10
-cols = 10
-start = ()
-start = (0, 0)
-robots = [start, (9, 9)]
-valid_points = []
-trackerVal = (0, 1)
-o = 0
+
 _, positione = sim.simxGetObjectPosition(
     client_id, ball_handleee, -1, sim.simx_opmode_streaming)
 time.sleep(0.1)
 _, positione = sim.simxGetObjectPosition(
     client_id, ball_handleee, -1, sim.simx_opmode_buffer)
-print("Position of drone 2: ", positione)
+print(positione)
 visitse = []
 trackere = [0, 0]
 temptrackere = []
 estimatedcoste = [0, 0, 0, 0, 0, 0, 0, 0]
-sofarvisitse = []
-sofarintegervisitse = []
-sofarvisits = []
-sofarintegervisits = []
-o = 0
-target_positione = [4, 5, 0]
+sofarvisitse=[]
+sofarintegervisitse=[]
+o=0
+target_positione = [9, 9, 0]
 grid = np.zeros([25, 25], dtype=int)
 
 _, positione = sim.simxGetObjectPosition(
@@ -1091,18 +1081,19 @@ _, positione = sim.simxGetObjectPosition(
     client_id, ball_handleee, -1, sim.simx_opmode_buffer)
 rows = 10
 cols = 10
-start = ()
-start = (0, 0)
+start=()
+start=(0,0)
 robotse = [start, (9, 9)]
-valid_pointse = []
-trackereVal = (0, 1)
-oe = 0
-positione = [9, 9, 5.5]
+valid_pointse=[]
+trackereVal=(0,1)
+oe=0
+positione=[10,10,5.5]
 # while (abs(position[0] - target_position[0]) > 0.4 or abs(position[1] - target_position[1]) > 0.4):
 while True:
     # print("visits: " + str(visits))
     # print("tracker" + str(tracker))
-
+    sofarvisits.append((round(position[1]), round(position[0])))
+    sofarintegervisits.append((int(position[1]), int(position[0])))
     estimatedcost = [0, 0, 0, 0, 0, 0, 0, 0]
     _, position = sim.simxGetObjectPosition(
         client_id, ball_handle, -1, sim.simx_opmode_streaming)
@@ -1115,7 +1106,7 @@ while True:
         estimatedcost[i] += cost(i, position)
         sensorState.append(collision(sensor_handles.get(i)))
 
-    # print("sensors" + str(sensorState))
+    print("sensors" + str(sensorState))
 
     min_cost = float('inf')
     optimal_index = 0  # Assume no optimal index initially
@@ -1123,7 +1114,6 @@ while True:
     for i in range(len(sensorState)):
         if (sensorState[i]):
             estimatedcost[i] += 1000
-    estimatedcoste = [0, 0, 0, 0, 0, 0, 0, 0]
 
     n = 1
     min_cost = 0
@@ -1136,7 +1126,7 @@ while True:
             min_cost = estimatedcost[i]
             optimal_index = i
         # Update visits_count based on the selected optimal_index
-    # print("cost" + str(estimatedcost))
+    print("cost" + str(estimatedcost))
 
     movement_functions[optimal_index]()
     tracker = trackerUpdate(optimal_index, tracker)
@@ -1149,6 +1139,7 @@ while True:
 
     time.sleep(0.1)
 
+    
     # Start streaming the signal
     result, data = sim.simxGetStringSignal(
         client_id, 'points', sim.simx_opmode_streaming)
@@ -1160,18 +1151,19 @@ while True:
     unpacked_data = cbor2.loads(data)
 
     # Print the unpacked data (assuming it's a dictionary)
-    # print(unpacked_data)
+    print(unpacked_data)
     x_values = [coord[0] for coord in unpacked_data]
     y_values = [coord[1] for coord in unpacked_data]
+    
 
     def round_to_nearest_half(number):
         return round(number * 2) / 2
     x_values = [round_to_nearest_half(xvals) for xvals in x_values]
     y_values = [round_to_nearest_half(yvals) for yvals in y_values]
-    # print("xvalues:")
-    # print(x_values)
-    # print("yvalues")
-    # print(y_values)
+    print("xvalues:")
+    print(x_values)
+    print("yvalues")
+    print(y_values)
 
     points = [[x_values[i], y_values[i]]for i in range(len(x_values))]
 
@@ -1181,14 +1173,16 @@ while True:
     # Convert back to list of lists
     unique_points = [list(point) for point in unique_points]
 
-    # print("Original points:", points)
-    # print("Points without duplicates:", unique_points)
+    print("Original points:", points)
+    print("Points without duplicates:", unique_points)
 
-    # print(unique_points)
+    print(unique_points)
     filtered_points = [[point[0], point[1]] for point in unique_points if (
         (point[0] != point[0]//1) or (point[1] != point[1]//1))]
 
-    print("Position of drone 1:", position)
+    
+    
+    print("Position:", position)
     for i in range(len(filtered_points)):
         subject = filtered_points[i]
         if (subject[0] % 1 == 0):
@@ -1208,58 +1202,56 @@ while True:
     # Convert back to list of lists
     filtered_points = [list(point) for point in unique_points]
 
-    # print("Filtered points:", filtered_points)
-    # print(position)
+    print("Filtered points:", filtered_points)
+    print(position)
 
     grid_resolution = 1.0  # Assuming obstacles are 1x1
-    valid_points.extend((int(point[0]), int(point[1]))
-                        for point in filtered_points)
-    valid_points.extend([(int(position[0]), int(position[1]))])
-    # valid_points.extend([(round(position[0]),round(position[1]))])
-    valid_points.extend([(0, 0)])
+    valid_points.extend([(int(point[1]), int(point[0])) for point in filtered_points])
+    valid_points.extend([(round(position[1]),round(position[0]))])
+    valid_points.extend([(0,0)])
     m = 0.1
-    darp_visualizer = DARPVisualizer(rows, cols, robots, valid_points, m)
 
+    darp_visualizer = DARPVisualizer(rows, cols, robots, valid_points, m)
     robot_index = 1  # Replace with the desired robot index
     robot_points = darp_visualizer.get_points_for_robot(robot_index)
+    robot_pointse=darp_visualizer.get_points_for_robot(2)
     darp_visualizer.visualize_darp()
 
     # Choose target position such that the distance between robots and target is minimized
     min_distance = float('inf')
-
     for i in range(len(robot_points)):
-        distance_to_robot = ((robot_points[i][0] - int(position[0]))
-                             ** 2 + (robot_points[i][1] - int(position[1]))**2)**0.5
-        # print("min distances:", min_distance)
-        # print("distanceto:", distance_to_robot)
-        # print("robots", robots)
-        # print("tobe bisited:", robot_points)
-        if distance_to_robot < min_distance and distance_to_robot:
+        distance_to_robot = ((robot_points[i][0] - int(position[0]))**2 + (robot_points[i][1] - int(position[1]))**2)**0.5
+        print("min distances:", min_distance)
+        print("distanceto:", distance_to_robot)
+        print("robots",robots)
+        print("tobe bisited:", robot_points)
+        if distance_to_robot < min_distance:
             min_distance = distance_to_robot
+            
+            target_position = robot_points[i]
 
-        target_position = robot_points[i]
-
-    # print("tovisit", robot_points)
-    print("target of drone 1", target_position)
-    robots = [(int(position[0]), int(position[1])), robots[1]]
-    # print("visitse: " + str(visitse))
-    # print("trackere" + str(trackere))
+    print("tovisit", robot_points)
+    print("taget",target_position)
+    sofarvisits.append((round(position[1]), round(position[0])))
+    sofarintegervisits.append((int(position[1]), int(position[0])))
+    robots=[(int(position[1]),int(position[0])),(9,0)]
+    o+=1
+    plt.show()
     sofarvisitse.append((round(positione[1]), round(positione[0])))
-    sofarintegervisitse.append((int(positione[0]), int(positione[1])))
+    sofarintegervisitse.append((int(positione[1]), int(positione[0])))
     estimatedcoste = [0, 0, 0, 0, 0, 0, 0, 0]
-    _, positione = sim.simxGetObjectPosition(
-        client_id, ball_handleee, -1, sim.simx_opmode_streaming)
-    time.sleep(0.1)
-    _, positione = sim.simxGetObjectPosition(
-        client_id, ball_handleee, -1, sim.simx_opmode_buffer)
-    print("position of drone 2:", positione)
+    # _, positione = sim.simxGetObjectPosition(
+    #     client_id, ball_handleee, -1, sim.simx_opmode_streaming)
+    # time.sleep(0.1)
+    # _, positione = sim.simxGetObjectPosition(
+    #     client_id, ball_handleee, -1, sim.simx_opmode_buffer)
+    print("position:", positione)
     sensorState = []
-    print("target for drone 2:",target_positione)
     for i in range(8):
-        estimatedcoste[i] += coste(i, positione)
+        estimatedcoste[i] += cost(i, positione)
         sensorState.append(collisione(sensor_handlees.get(i)))
 
-    # print("sensors" + str(sensorState))
+    print("sensors" + str(sensorState))
 
     min_coste = float('inf')
     optimal_indexe = 0  # Assume no optimal index initially
@@ -1273,13 +1265,13 @@ while True:
     min_coste = float('inf')
     optimal_indexe = -1
 
-    for k in range(len(estimatedcoste)):
-        if estimatedcoste[k] <= min_coste:
+    for i in range(len(estimatedcoste)):
+        if estimatedcoste[i] <= min_coste:
             # Update min_coste and optimal_indexe when a smaller cost is found
-            min_coste = estimatedcoste[k]
-            optimal_indexe = k
+            min_coste = estimatedcoste[i]
+            optimal_indexe = i
         # Update visitse_count based on the selected optimal_indexe
-    # print("cost" + str(estimatedcoste))
+    print("cost" + str(estimatedcoste))
 
     movement_functionse[optimal_indexe]()
     trackere = trackereUpdate(optimal_indexe, trackere)
@@ -1289,10 +1281,11 @@ while True:
     time.sleep(0.1)
     _, positione = sim.simxGetObjectPosition(
         client_id, ball_handleee, -1, sim.simx_opmode_buffer)
-    print("position of drone 2",positione)
+    print(positione)
 
     time.sleep(0.1)
 
+    
     # Start streaming the signal
     resulte, datae = sim.simxGetStringSignal(
         client_id, 'pointse', sim.simx_opmode_streaming)
@@ -1304,18 +1297,19 @@ while True:
     unpacked_datae = cbor2.loads(datae)
 
     # Print the unpacked data (assuming it's a dictionary)
-    # print(unpacked_datae)
+    print(unpacked_datae)
     x_valuese = [coord[0] for coord in unpacked_datae]
     y_valuese = [coord[1] for coord in unpacked_datae]
+    
 
     def round_to_nearest_half(number):
         return round(number * 2) / 2
     x_valuese = [round_to_nearest_half(xvals) for xvals in x_valuese]
     y_valuese = [round_to_nearest_half(yvals) for yvals in y_valuese]
-    # print("xvaluese:")
-    # print(x_valuese)
-    # print("yvaluese")
-    # print(y_valuese)
+    print("xvaluese:")
+    print(x_valuese)
+    print("yvaluese")
+    print(y_valuese)
 
     pointse = [[x_valuese[i], y_valuese[i]]for i in range(len(x_valuese))]
 
@@ -1325,14 +1319,16 @@ while True:
     # Convert back to list of lists
     unique_pointsee = [list(point) for point in unique_pointsee]
 
-    # print("Original pointse:", pointse)
-    # print("pointse without duplicates:", unique_pointsee)
+    print("Original pointse:", pointse)
+    print("pointse without duplicates:", unique_pointsee)
 
-    # print(unique_pointsee)
+    print(unique_pointsee)
     filtered_pointse = [[point[0], point[1]] for point in unique_pointsee if (
         (point[0] != point[0]//1) or (point[1] != point[1]//1))]
 
     
+    
+    print("Position:", positione)
     for i in range(len(filtered_pointse)):
         subject = filtered_pointse[i]
         if (subject[0] % 1 == 0):
@@ -1352,63 +1348,56 @@ while True:
     # Convert back to list of lists
     filtered_pointse = [list(point) for point in unique_pointsee]
 
-    # print("Filtered pointse:", filtered_pointse)
-    # print("position:", positione)
+    print("Filtered pointse:", filtered_pointse)
+    print("position:", positione)
 
     grid_resolution = 1.0  # Assuming obstacles are 1x1
-    valid_points.extend([(int(point[0]), int(point[1]))
-                        for point in filtered_pointse])
-    valid_points.extend([(round(positione[0]), round(positione[1]))])
-    valid_points.extend([(10, 10)])
+    valid_points.extend([(np.ceil(point[1]), np.ceil(point[0])) for point in filtered_pointse])
+    valid_points.extend([(round(positione[1]),round(positione[0]))])
+    valid_points.extend([(10,10)])
     m = 0.1
 
-    robot_index = 2  # Replace with the desired robot index
-    robot_pointse = darp_visualizer.get_points_for_robot(robot_index)
+    darp_visualizer = DARPVisualizer(rows, cols, robotse, valid_points, m)
+    robot_indexe = 2  # Replace with the desired robot index
+    robot_pointse = darp_visualizer.get_points_for_robot(robot_indexe)
     darp_visualizer.visualize_darp()
-    _, positione = sim.simxGetObjectPosition(
-        client_id, ball_handleee, -1, sim.simx_opmode_streaming)
-    time.sleep(0.1)
-    _, positione = sim.simxGetObjectPosition(
-        client_id, ball_handleee, -1, sim.simx_opmode_buffer)
-    print("position of drone 2",positione)
 
     # Choose target position such that the distance between robots and target is minimized
     min_distance = float('inf')
-    for j in range(len(robot_pointse)):
-        distance_to_robot = (
-            (robot_pointse[j][0] - (positione[0]))**2 + (robot_pointse[j][1] - (positione[1]))**2)**0.5
-        # print("min distances:", min_distance)
-        # print("distanceto:", distance_to_robot)
-        # print("robots", robotse)
-        # print("tobe bisited:", robot_pointse)
+    for i in range(len(robot_pointse)):
+        distance_to_robot = ((robot_pointse[i][0] - positione[0])**2 + (robot_pointse[i][1] - positione[1])**2)**0.5
+        print("min distances:", min_distance)
+        print("distanceto:", distance_to_robot)
+        print("robots",robotse)
+        print("tobe bisited:", robot_pointse)
         if distance_to_robot < min_distance:
+            if min_distance!=0:
+                min_distance = distance_to_robot
+            
+            target_positione = robot_pointse[i]
 
-            min_distance = distance_to_robot
-
-            target_positione = robot_pointse[j]
-
-    # print("tovisit", robot_pointse)
-    print("taget for drone 2;", target_positione)
+    print("tovisit", robot_pointse)
+    print("taget",target_positione)
     sofarvisitse.append((round(positione[1]), round(positione[0])))
-    sofarintegervisits.append((int(positione[0]), int(positione[1])))
-    robots = [robots[0], (round((positione[0])),round((positione[1])))]
-    valid_points.extend((round((positione[0])),round((positione[1]))))
-    print("position of drone 2:", positione)
-    plt.show()
+    sofarintegervisitse.append((np.ceil(positione[1]), np.ceil(positione[0])))
+    robots=[robots[0],(np.ceil(positione[1]),np.ceil(positione[0]))]
+    print("position:", positione)
+
+    
 
 # import matplotlib.pyplot as plt
 # import numpy as np
 
-# # Assuming 'grid' and 'grid_size' are defined earlier in your code
+# Assuming 'grid' and 'grid_size' are defined earlier in your code
 # for point in valid_points:
 #         x, y = point
 #         grid[x][y] = 1
 # plt.imshow(1 - grid, cmap='gray', origin='lower', extent=[0, grid_size, 0, grid_size], vmin=0, vmax=1)
 
-# # Add grid lines
+# Add grid lines
 # plt.grid(color='black', linestyle='-', linewidth=1)
 
-# # Set axis ticks to go up by 1s
+# Set axis ticks to go up by 1s
 # plt.xticks(np.arange(0, grid_size + 1, step=1))
 # plt.yticks(np.arange(0, grid_size + 1, step=1))
 
@@ -1420,20 +1409,32 @@ while True:
 # plt.savefig('occupancy_grid_map.png')
 
 # Show the plot
-x_sofarvisits = [point[0] for point in sofarvisits]
-y_sofarvisits = [point[1] for point in sofarvisits]
+# plt.show()
 
-x_sofarintegervisits = [point[0] for point in sofarintegervisits]
-y_sofarintegervisits = [point[1] for point in sofarintegervisits]
-print(x_sofarintegervisits)
-print(y_sofarintegervisits)
-plt.scatter(x_sofarintegervisits, y_sofarintegervisits)
-plt.show()
 # frontRight()
 # _,position=sim.simxGetObjectPosition(client_id, ball_handle,-1, sim.simx_opmode_streaming)
 # time.sleep(0.1)
 # _,position=sim.simxGetObjectPosition(client_id, ball_handle,-1, sim.simx_opmode_buffer)
 # print(np.sqrt(position[0]**2+position[1]**2))
+plt.close()
+x_sofarvisits = [point[0] for point in sofarvisits]
+y_sofarvisits = [point[1] for point in sofarvisits]
 
+x_sofarintegervisits = [point[0] for point in sofarintegervisits]
+y_sofarintegervisits = [point[1] for point in sofarintegervisits]
+# Create a scatter plot
+plt.scatter(x_sofarvisits, y_sofarvisits, color='blue', label='sofarvisits')
+plt.scatter(x_sofarintegervisits, y_sofarintegervisits, color='red', label='sofarintegervisits')
 
+# Connect the points with lines
+plt.plot(x_sofarvisits, y_sofarvisits, linestyle='-', color='blue')
+plt.plot(x_sofarintegervisits, y_sofarintegervisits, linestyle='-', color='red')
+
+# Add labels and legend
+plt.xlabel('X-axis')
+plt.ylabel('Y-axis')
+plt.legend()
+
+# Show the plot
+plt.show()
 # END-----------------------------------
