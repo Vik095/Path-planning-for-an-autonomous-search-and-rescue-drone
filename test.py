@@ -1089,15 +1089,15 @@ _, positione = sim.simxGetObjectPosition(
 time.sleep(0.1)
 _, positione = sim.simxGetObjectPosition(
     client_id, ball_handleee, -1, sim.simx_opmode_buffer)
-rows = 10
-cols = 10
+rows = 5
+cols = 5
 start = ()
 start = (0, 0)
-robotse = [start, (9, 9)]
+robotse = [start, (4, 4)]
 valid_pointse = []
 trackereVal = (0, 1)
 oe = 0
-positione = [9, 9, 5.5]
+positione = [5, 5, 5.5]
 # while (abs(position[0] - target_position[0]) > 0.4 or abs(position[1] - target_position[1]) > 0.4):
 while True:
     # print("visits: " + str(visits))
@@ -1218,26 +1218,22 @@ while True:
     # valid_points.extend([(round(position[0]),round(position[1]))])
     valid_points.extend([(0, 0)])
     m = 0.1
-    darp_visualizer = DARPVisualizer(rows, cols, robots, valid_points, m)
 
-    robot_index = 1  # Replace with the desired robot index
+    darp_visualizer = DARPVisualizer(rows, cols, robots, valid_points, m)
+    robot_index = 1
     robot_points = darp_visualizer.get_points_for_robot(robot_index)
     darp_visualizer.visualize_darp()
 
-    # Choose target position such that the distance between robots and target is minimized
     min_distance = float('inf')
-
+    if len(robot_points)==0:
+        print("lmao")
+        
     for i in range(len(robot_points)):
-        distance_to_robot = ((robot_points[i][0] - int(position[0]))
-                             ** 2 + (robot_points[i][1] - int(position[1]))**2)**0.5
-        # print("min distances:", min_distance)
-        # print("distanceto:", distance_to_robot)
-        # print("robots", robots)
-        # print("tobe bisited:", robot_points)
-        if distance_to_robot < min_distance and distance_to_robot:
-            min_distance = distance_to_robot
+        if tuple((robot_points[i][0],robot_points[i][1])) not in valid_points:
+    
+            target_position=robot_points[i]
+            break
 
-        target_position = robot_points[i]
 
     # print("tovisit", robot_points)
     print("target of drone 1", target_position)
@@ -1372,20 +1368,20 @@ while True:
         client_id, ball_handleee, -1, sim.simx_opmode_buffer)
     print("position of drone 2",positione)
 
-    # Choose target position such that the distance between robots and target is minimized
+    
+    robot_index = 2
+    robot_points = darp_visualizer.get_points_for_robot(robot_index)
+    
+
     min_distance = float('inf')
-    for j in range(len(robot_pointse)):
-        distance_to_robot = (
-            (robot_pointse[j][0] - (positione[0]))**2 + (robot_pointse[j][1] - (positione[1]))**2)**0.5
-        # print("min distances:", min_distance)
-        # print("distanceto:", distance_to_robot)
-        # print("robots", robotse)
-        # print("tobe bisited:", robot_pointse)
-        if distance_to_robot < min_distance:
-
-            min_distance = distance_to_robot
-
-            target_positione = robot_pointse[j]
+    if len(robot_points)==0:
+        print("lmao")
+    
+    for i in range(len(robot_points)):
+        if tuple((robot_points[i][0],robot_points[i][1])) not in valid_points:
+    
+            target_positione=robot_points[i]
+            break
 
     # print("tovisit", robot_pointse)
     print("taget for drone 2;", target_positione)
@@ -1394,7 +1390,7 @@ while True:
     robots = [robots[0], (round((positione[0])),round((positione[1])))]
     valid_points.extend((round((positione[0])),round((positione[1]))))
     print("position of drone 2:", positione)
-    plt.show()
+    
 
 # import matplotlib.pyplot as plt
 # import numpy as np

@@ -169,6 +169,7 @@ def collision_distance(i):
         return True
 
 
+
 def oneBack():
     # ID=1
     _, position = sim.simxGetObjectPosition(
@@ -549,12 +550,12 @@ _, position = sim.simxGetObjectPosition(
     client_id, ball_handle, -1, sim.simx_opmode_buffer)
 rows = 10
 cols = 10
-start = ()
-start = (10, 0)
-robots = [start, (0, 10)]
+
+robots = [(0,0)]
 valid_points = []
 trackerVal = (0, 1)
 o = 0
+integer_positions=[]
 # while (abs(position[0] - target_position[0]) > 0.4 or abs(position[1] - target_position[1]) > 0.4):
 while True:
     # print("visits: " + str(visits))
@@ -572,7 +573,7 @@ while True:
     for i in range(8):
         estimatedcost[i] += cost(i, position)
         sensorState.append(collision(sensor_handles.get(i)))
-    print("sensors" + str(sensorState))
+    
 
     min_cost = float('inf')
     optimal_index = 0  # Assume no optimal index initially
@@ -592,7 +593,7 @@ while True:
             min_cost = estimatedcost[i]
             optimal_index = i
         # Update visits_count based on the selected optimal_index
-    print("cost" + str(estimatedcost))
+    print("target", target_position)
 
     movement_functions[optimal_index]()
     tracker = trackerUpdate(optimal_index, tracker)
@@ -614,7 +615,7 @@ while True:
 
     unpacked_data = cbor2.loads(data)
 
-    print(unpacked_data)
+    
     x_values = [coord[0] for coord in unpacked_data]
     y_values = [coord[1] for coord in unpacked_data]
 
@@ -622,10 +623,7 @@ while True:
         return round(number * 2) / 2
     x_values = [round_to_nearest_half(xvals) for xvals in x_values]
     y_values = [round_to_nearest_half(yvals) for yvals in y_values]
-    print("xvalues:")
-    print(x_values)
-    print("yvalues")
-    print(y_values)
+    
 
     points = [[x_values[i], y_values[i]]for i in range(len(x_values))]
 
@@ -633,10 +631,9 @@ while True:
 
     unique_points = [list(point) for point in unique_points]
 
-    print("Original points:", points)
-    print("Points without duplicates:", unique_points)
+    
 
-    print(unique_points)
+    
     filtered_points = [[point[0], point[1]] for point in unique_points if (
         (point[0] != point[0]//1) or (point[1] != point[1]//1))]
 
@@ -658,63 +655,78 @@ while True:
 
     filtered_points = [list(point) for point in unique_points]
 
-    print("Filtered points:", filtered_points)
-    print(position)
+   
 
     grid_resolution = 1.0  # Assuming obstacles are 1x1
-    valid_points.extend([(int(point[1]), int(point[0]))
+    valid_points.extend([(int(point[0]), int(point[1]))
                         for point in filtered_points])
-    valid_points.extend([(round(position[1]), round(position[0]))])
+    valid_points.extend([(int(position[0]), int(position[1]))])
+    integer_positions.append((int(position[0]), int(position[1])))
     valid_points.extend([(0, 0)])
     m = 0.1
+    print(integer_positions)
 
     darp_visualizer = DARPVisualizer(rows, cols, robots, valid_points, m)
     robot_index = 1
     robot_points = darp_visualizer.get_points_for_robot(robot_index)
     darp_visualizer.visualize_darp()
+    xvalues=[point[0] for point in robot_points]
+    yvavlues=[point[1] for point in robot_points]
+    
+    
+    
+    o+=1
+
 
     min_distance = float('inf')
-    for i in range(len(robot_points)):
-        distance_to_robot = ((robot_points[i][0] - int(position[0]))
-                             ** 2 + (robot_points[i][1] - int(position[1]))**2)**0.5
-        print("min distances:", min_distance)
-        print("distanceto:", distance_to_robot)
-        print("robots", robots)
-        print("tobe bisited:", robot_points)
-        if distance_to_robot < min_distance:
-            min_distance = distance_to_robot
-
-            target_position = robot_points[i]
-
-    print("tovisit", robot_points)
-    print("taget", target_position)
-    sofarvisits.append((round(position[1]), round(position[0])))
-    sofarintegervisits.append((int(position[1]), int(position[0])))
-    robots = [(int(position[1]), int(position[0])), (9, 0)]
-    o += 1
-    if o > 3:
+    if len(robot_points)==0:
+        print("lmao")
         break
+    for i in range(len(robot_points)):
+        if tuple((robot_points[i][0],robot_points[i][1])) not in valid_points:
+    
+            target_position=robot_points[i]
+            break
+    time.sleep(10)
+    
+    
 
-
+import matplotlib.pyplot as plt
 plt.close()
-x_sofarvisits = [point[0] for point in sofarvisits]
-y_sofarvisits = [point[1] for point in sofarvisits]
+# Assuming you have integer_positions already populated
+print(integer_positions)
+# Extract x and y coordinates from integer_positions
+x_coords = [pos[0] for pos in integer_positions]
+y_coords = [pos[1] for pos in integer_positions]
 
-x_sofarintegervisits = [point[0] for point in sofarintegervisits]
-y_sofarintegervisits = [point[1] for point in sofarintegervisits]
-# Create a scatter plot
-plt.scatter(x_sofarvisits, y_sofarvisits, color='blue', label='sofarvisits')
-plt.scatter(x_sofarintegervisits, y_sofarintegervisits,
-            color='red', label='sofarintegervisits')
-
-plt.plot(x_sofarvisits, y_sofarvisits, linestyle='-', color='blue')
-plt.plot(x_sofarintegervisits, y_sofarintegervisits,
-         linestyle='-', color='red')
-
-plt.xlabel('X-axis')
-plt.ylabel('Y-axis')
-plt.legend()
+# Plot the integer positions
+plt.plot(x_coords, y_coords, color='blue', linewidth=2, label='Integer Positions')
+plt.xlabel('X Coordinate')
+plt.ylabel('Y Coordinate')
+plt.title('Plot of Integer Positions')
 
 
 plt.show()
+
+# plt.close()
+# x_sofarvisits = [point[0] for point in sofarvisits]
+# y_sofarvisits = [point[1] for point in sofarvisits]
+
+# x_sofarintegervisits = [point[0] for point in sofarintegervisits]
+# y_sofarintegervisits = [point[1] for point in sofarintegervisits]
+# # Create a scatter plot
+# plt.scatter(x_sofarvisits, y_sofarvisits, color='blue', label='sofarvisits')
+# plt.scatter(x_sofarintegervisits, y_sofarintegervisits,
+#             color='red', label='sofarintegervisits')
+
+# plt.plot(x_sofarvisits, y_sofarvisits, linestyle='-', color='blue')
+# plt.plot(x_sofarintegervisits, y_sofarintegervisits,
+#          linestyle='-', color='red')
+
+# plt.xlabel('X-axis')
+# plt.ylabel('Y-axis')
+# plt.legend()
+
+
+# plt.show()
 # END-----------------------------------
